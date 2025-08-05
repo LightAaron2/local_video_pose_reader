@@ -1,0 +1,6 @@
+aiohttp==3.8.5
+opencv-python==4.8.1.78
+numpy==1.24.3
+rospy
+sensor_msgs
+geometry_msgs 

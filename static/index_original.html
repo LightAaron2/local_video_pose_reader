@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLAM视频监控系统</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🤖 SLAM视频监控系统</h1>
+            <div class="status-indicator">
+                <span id="connection-status" class="status-dot offline"></span>
+                <span id="connection-text">未连接</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- 视频显示区域 -->
+            <section class="video-section">
+                <div class="video-container">
+                    <h2>📹 实时视频流</h2>
+                    <div class="video-grid" id="video-grid">
+                        <!-- 视频元素将在这里动态生成 -->
+                    </div>
+                    <div class="video-controls">
+                        <button id="refresh-cameras" class="btn btn-primary">🔄 刷新摄像头</button>
+                        <button id="fullscreen-btn" class="btn btn-secondary">📺 全屏</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLAM数据显示区域 -->
+            <section class="slam-section">
+                <div class="slam-container">
+                    <h2>📍 SLAM位置数据</h2>
+                    <div class="slam-data-grid">
+                        <div class="slam-card">
+                            <h3>位置坐标</h3>
+                            <div class="data-row">
+                                <span class="label">X:</span>
+                                <span id="pos-x" class="value">0.000</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="label">Y:</span>
+                                <span id="pos-y" class="value">0.000</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="label">Z:</span>
+                                <span id="pos-z" class="value">0.000</span>
+                            </div>
+                        </div>
+                        <div class="slam-card">
+                            <h3>姿态四元数</h3>
+                            <div class="data-row">
+                                <span class="label">QX:</span>
+                                <span id="quat-x" class="value">0.000</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="label">QY:</span>
+                                <span id="quat-y" class="value">0.000</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="label">QZ:</span>
+                                <span id="quat-z" class="value">0.000</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="label">QW:</span>
+                                <span id="quat-w" class="value">1.000</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slam-controls">
+                        <button id="reset-slam" class="btn btn-warning">🔄 重置SLAM</button>
+                        <button id="export-data" class="btn btn-success">💾 导出数据</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 系统信息区域 -->
+            <section class="info-section">
+                <div class="info-container">
+                    <h2>ℹ️ 系统信息</h2>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h3>连接状态</h3>
+                            <div class="data-row">
+                                <span class="label">WebSocket:</span>
+                                <span id="ws-status" class="value">断开</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="label">摄像头数量:</span>
+                                <span id="camera-count" class="value">0</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="label">数据频率:</span>
+                                <span id="data-fps" class="value">0 Hz</span>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <h3>性能监控</h3>
+                            <div class="data-row">
+                                <span class="label">延迟:</span>
+                                <span id="latency" class="value">0ms</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="label">内存使用:</span>
+                                <span id="memory-usage" class="value">0 MB</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="label">运行时间:</span>
+                                <span id="uptime" class="value">00:00:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 日志区域 -->
+        <section class="log-section">
+            <div class="log-container">
+                <h2>📋 系统日志</h2>
+                <div class="log-controls">
+                    <button id="clear-log" class="btn btn-small">清空日志</button>
+                    <button id="export-log" class="btn btn-small">导出日志</button>
+                </div>
+                <div class="log-content" id="log-content">
+                    <div class="log-entry info">系统启动中...</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 加载动画 -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>正在连接服务器...</p>
+    </div>
+
+    <!-- 全屏视频模态框 -->
+    <div id="fullscreen-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>全屏视频</h3>
+                <button id="close-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <img id="fullscreen-video" src="" alt="全屏视频">
+            </div>
+        </div>
+    </div>
+
+    <script src="websocket.js"></script>
+    <script src="main.js"></script>
+    <script src="controls.js"></script>
+</body>
+</html>
