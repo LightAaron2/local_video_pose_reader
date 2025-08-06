@@ -233,6 +233,8 @@
                     <button id="check-status" class="btn">📊 检查状态</button>
                     <button id="fullscreen-btn" class="btn">📺 全屏</button>
                     <button id="reset-slam" class="btn">🔄 重置SLAM</button>
+                    <button id="start-record" class="btn">开始采集</button>
+                    <button id="stop-record" class="btn">停止采集</button>
                 </div>
             </div>
         </div>
@@ -243,6 +245,8 @@
 
     <script>
         let ws = null;
+        let reconnect =  0;
+        let maxReconnect = 5;
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
         let currentCameraIndex = 0;
@@ -268,6 +272,16 @@
             } else {
                 statusDiv.className = 'status disconnected';
                 statusText.textContent = '未连接';
+            }
+        }
+
+        /* ---------- 新增：发送开始 / 停止采集 ---------- */
+        function sendRecordCmd(cmd){
+            if(ws && ws.readyState===WebSocket.OPEN){
+                ws.send(JSON.stringify({type:"command", action:cmd}));
+                log(`已发送 ${cmd==="start_record"?"开始":"停止"} 采集指令`,'info');
+            }else{
+                log('WebSocket 未连接，无法发送指令','error');
             }
         }
         
@@ -390,7 +404,16 @@
                 log(`状态检查失败: ${error.message}`, 'error');
             }
         }
-        
+    
+        function sendRecordCmd(cmd){
+        if(ws && ws.readyState===WebSocket.OPEN){
+            ws.send(JSON.stringify({type:"command", action:cmd}));
+            log(`已发送 ${cmd==="start_record"?"开始":"停止"} 采集指令`,'info');
+        }else{
+            log('WebSocket 未连接，无法发送指令','error');
+        }
+    }
+
         function connect() {
             try {
                 ws = new WebSocket('ws://localhost:8080/ws');
@@ -401,16 +424,16 @@
                     reconnectAttempts = 0;
                 };
                 
-                ws.onmessage = function(event) {
-                    try {
-                        const data = JSON.parse(event.data);
-                        if (data.type === 'slam') {
-                            updateSLAMData(data.data);
-                        } else if (data.type === 'pong') {
-                            log('收到pong响应', 'info');
-                        }
-                    } catch (e) {
-                        log(`消息解析错误: ${e.message}`, 'error');
+                ws.onmessage = e =>{
+                    let data;
+                    try{ data = JSON.parse(e.data); }catch{ return; }
+                    if(data.type==='slam') updateSLAMData(data.data);
+                    if(data.type==='record_status'){            // <-- 处理采集状态
+                        recording = data.state==='started';
+                        document.getElementById('start-record').disabled = recording;
+                        document.getElementById('stop-record').disabled  = !recording;
+                        log(`采集 ${recording?'已开始':'已停止'}`,
+                            recording?'success':'warning');
                     }
                 };
                 
@@ -438,6 +461,8 @@
             }
         }
         
+        
+
         // 页面加载时开始连接
         window.addEventListener('load', function() {
             log('页面加载完成，开始连接服务器...', 'info');
@@ -451,6 +476,10 @@
             document.getElementById('check-status').addEventListener('click', checkCameraStatus);
             document.getElementById('fullscreen-btn').addEventListener('click', openFullscreen);
             document.getElementById('reset-slam').addEventListener('click', resetSLAM);
+            document.getElementById('start-record')
+            .addEventListener('click', ()=>sendRecordCmd('start_record'));
+            document.getElementById('stop-record')
+            .addEventListener('click', ()=>sendRecordCmd('stop_record'));
         });
         
         // 页面关闭时清理连接
